@@ -94,7 +94,7 @@ func (s *Server) Login(ctx echo.Context) error {
 	return ctx.JSON(200, generated.LoginResponse{
 		Message: "success",
 		Token:   jwtToken,
-		UserID:  123,
+		UserID:  int(resGetProfile[0].UserId),
 	})
 }
 
