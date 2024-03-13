@@ -1,0 +1,222 @@
+# This is the OpenAPI specification for your service. It is used to generate the client code.
+# To generate the server code, use the Gradle task `openApiGenerate`. The 
+# generated code will be placed in `build/generate-resources/main`.
+#
+# We will evaluate you based on how well you design your API.
+# 1. How well it follows REST principles.
+# 2. How easy it is to understand and use.
+#
+# References
+# 1. https://swagger.io/specification/
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: User Service
+  license:
+    name: MIT
+servers:
+  - url: http://localhost
+paths:
+  /regis:
+    post:
+      summary: Register a new user
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /login:
+    post:
+      summary: Login a user
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /profile:
+    get:
+      summary: Get user profile
+      operationId: getProfile
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      summary: Update user profile
+      operationId: updateProfile
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+
+components:
+  schemas:
+    RegisterRequest:
+      allOf:
+        - $ref: "#/components/schemas/UpdateProfileRequest"
+        - required: [password, fullName, phoneNumber]
+        - type: object
+          properties:
+            password:
+              type: string
+              format: password
+              minLength: 6
+              maxLength: 64
+              example: "<p4Ssw0rd>"
+              description: The password of the user
+              pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&;])'
+              x-oapi-codegen-extra-tags:
+                validate: required,min=6,max=64,validpasswd
+    RegisterResponse:
+      type: object
+      required:
+        - message
+        - userID
+      properties:
+        message:
+          type: string
+        userID:
+          type: integer
+    LoginRequest:
+      type: object
+      required:
+        - phoneNumber
+        - password
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number of user
+          x-oapi-codegen-extra-tags:
+            validate: required
+        password:
+          type: string
+          format: password
+          description: The password of the user
+          x-oapi-codegen-extra-tags:
+            validate: required
+    LoginResponse:
+      type: object
+      required:
+        - message
+        - token
+        - userID
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        userID:
+          type: integer
+    UpdateProfileRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          minLength: 10
+          maxLength: 13
+          pattern: '^\+62[0-9]*$'
+          example: '+6282345678900'
+          description: The phone number of the user
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,min=10,max=13,startswith=+62,numeric
+        fullName:
+          type: string
+          example: "<NAME>"
+          description: The full name of the user
+          minLength: 3
+          maxLength: 60
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,min=3,max=60
+    ProfileResponse:
+      type: object
+      required:
+        - message
+        - phoneNumber
+        - fullName
+      properties:
+        message:
+          type: string
+        phoneNumber:
+          type: string
+        fullName:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
